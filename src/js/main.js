@@ -32,6 +32,8 @@ class Main {
     this.controls = null;
 
     this.videoTexture = null;
+    // this.videoAspectRatio = 1678 / 944; // 元動画の縦横比
+    // this.plane = null; // 動画用板ポリ
 
     // post processing
     this.composer = null;
@@ -73,24 +75,32 @@ class Main {
     video.muted = true;
     video.setAttribute('crossorigin', 'anonymous');
 
+    // // ビューポートの縦横比を取得
+    // const viewportAspectRatio = this.viewport.width / this.viewport.height;
+
+    // // 動画の縦横比とビューポートの縦横比を比較して、動画の表示サイズを調整
+    // if (this.videoAspectRatio > viewportAspectRatio) {
+    //   // より横長の場合
+    //   video.width = this.viewport.height * this.videoAspectRatio;
+    //   video.height = this.viewport.height;
+    // } else {
+    //   // より縦長の場合
+    //   video.width = this.viewport.width;
+    //   video.height = this.viewport.width / this.videoAspectRatio;
+    // }
+
     video.play();
 
     this.videoTexture = new THREE.VideoTexture(video);
     this.videoTexture.minFilter = THREE.LinearFilter;
-
   }
 
   _setComposer() {
     const clearPass = new ClearPass();
-
     const clearMaskPass = new ClearMaskPass();
-
     const maskPass = new MaskPass( this.scene, this.camera );
-
     const texture = this.videoTexture;
-
     const texturePass = new TexturePass( texture );
-
     const outputPass = new OutputPass();
 
     const parameters = {
@@ -110,7 +120,8 @@ class Main {
   }
 
   _addMesh() {
-    const geometry = new THREE.BoxGeometry(50, 50, 50);
+    // const geometry = new THREE.BoxGeometry(400, 400, 400);
+    const geometry = new THREE.CapsuleGeometry( 100, 300, 32, 32 ); 
     const material = new THREE.MeshStandardMaterial({color: 0x444444});
     this.mesh = new THREE.Mesh(geometry, material);
     this.scene.add(this.mesh);
@@ -125,7 +136,17 @@ class Main {
 
   _update() {
     this.mesh.rotation.y += 0.01;
-    this.mesh.rotation.x += 0.01;
+    this.mesh.rotation.x += 0.02;
+    this.mesh.rotation.z += 0.005;
+
+    this.mesh.position.x = Math.sin(Date.now() * 0.001) * 200;
+
+    this.camera.position.z += Math.sin(Date.now() * 0.002) * 9;
+
+    // 動画テクスチャがある場合、更新する
+    if (this.videoTexture) {
+      this.videoTexture.needsUpdate = true;
+    }
 
     //レンダリング
     this.renderer.render(this.scene, this.camera);
