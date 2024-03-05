@@ -33,10 +33,6 @@ class Main {
 
     this.controls = null;
 
-    this.videoTexture = null;
-    // this.videoAspectRatio = 1678 / 944; // 元動画の縦横比
-    // this.plane = null; // 動画用板ポリ
-
     // post processing
     this.composer = null;
 
@@ -70,24 +66,22 @@ class Main {
     this.scene.add(light);
   }
 
-  _setTexture() {
+  _createVideoTexture(source) {
     const video = document.createElement('video');
-    video.src = videoSource;
+    video.src = source;
     video.loop = true;
     video.muted = true;
     video.setAttribute('crossorigin', 'anonymous');
     video.play();
-    this.videoTexture = new THREE.VideoTexture(video);
-    this.videoTexture.minFilter = THREE.LinearFilter;
+    const texture = new THREE.VideoTexture(video);
+    texture.minFilter = THREE.LinearFilter;
 
-    const video2 = document.createElement('video');
-    video2.src = videoSource2;
-    video2.loop = true;
-    video2.muted = true;
-    video2.setAttribute('crossorigin', 'anonymous');
-    video2.play();
-    this.videoTexture2 = new THREE.VideoTexture(video2);
-    this.videoTexture2.minFilter = THREE.LinearFilter;
+    return texture;
+  }
+
+  _setTexture() {
+    this.videoTexture = this._createVideoTexture(videoSource);
+    this.videoTexture2 = this._createVideoTexture(videoSource2);
   }
 
   _setComposer() {
