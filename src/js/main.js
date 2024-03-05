@@ -7,7 +7,8 @@ import { ClearPass } from 'three/examples/jsm/postprocessing/ClearPass.js';
 import { MaskPass, ClearMaskPass } from 'three/examples/jsm/postprocessing/MaskPass.js';
 import { OutputPass } from './OutputPass.js';
 
-import videoSource from '../images/video1.mp4';
+import videoSource from '../images/video2.mp4';
+import videoSource2 from '../images/video1.mp4';
 
 class Main {
   constructor() {
@@ -26,6 +27,7 @@ class Main {
     this.renderer.setSize(this.viewport.width, this.viewport.height);
 
     this.scene = new THREE.Scene();
+    this.scene2 = new THREE.Scene();
     this.camera = null;
     this.mesh = null;
 
@@ -74,33 +76,27 @@ class Main {
     video.loop = true;
     video.muted = true;
     video.setAttribute('crossorigin', 'anonymous');
-
-    // // ビューポートの縦横比を取得
-    // const viewportAspectRatio = this.viewport.width / this.viewport.height;
-
-    // // 動画の縦横比とビューポートの縦横比を比較して、動画の表示サイズを調整
-    // if (this.videoAspectRatio > viewportAspectRatio) {
-    //   // より横長の場合
-    //   video.width = this.viewport.height * this.videoAspectRatio;
-    //   video.height = this.viewport.height;
-    // } else {
-    //   // より縦長の場合
-    //   video.width = this.viewport.width;
-    //   video.height = this.viewport.width / this.videoAspectRatio;
-    // }
-
     video.play();
-
     this.videoTexture = new THREE.VideoTexture(video);
     this.videoTexture.minFilter = THREE.LinearFilter;
+
+    const video2 = document.createElement('video');
+    video2.src = videoSource2;
+    video2.loop = true;
+    video2.muted = true;
+    video2.setAttribute('crossorigin', 'anonymous');
+    video2.play();
+    this.videoTexture2 = new THREE.VideoTexture(video2);
+    this.videoTexture2.minFilter = THREE.LinearFilter;
   }
 
   _setComposer() {
     const clearPass = new ClearPass();
     const clearMaskPass = new ClearMaskPass();
     const maskPass = new MaskPass( this.scene, this.camera );
-    const texture = this.videoTexture;
-    const texturePass = new TexturePass( texture );
+    const maskPass2 = new MaskPass( this.scene2, this.camera );
+    const texturePass = new TexturePass(this.videoTexture);
+    const texturePass2 = new TexturePass(this.videoTexture2);
     const outputPass = new OutputPass();
 
     const parameters = {
@@ -115,16 +111,20 @@ class Main {
     this.composer.addPass( clearPass );
     this.composer.addPass( maskPass );
     this.composer.addPass( texturePass );
+    this.composer.addPass( maskPass2 );
+    this.composer.addPass( texturePass2 );
     this.composer.addPass( clearMaskPass );
     this.composer.addPass( outputPass );  
   }
 
   _addMesh() {
-    // const geometry = new THREE.BoxGeometry(400, 400, 400);
     const geometry = new THREE.CapsuleGeometry( 100, 300, 32, 32 ); 
     const material = new THREE.MeshStandardMaterial({color: 0x444444});
     this.mesh = new THREE.Mesh(geometry, material);
     this.scene.add(this.mesh);
+
+    this.mesh2 = new THREE.Mesh(geometry, material);
+    this.scene2.add(this.mesh2);
   }
 
   _init() {
@@ -139,9 +139,18 @@ class Main {
     this.mesh.rotation.x += 0.02;
     this.mesh.rotation.z += 0.005;
 
-    this.mesh.position.x = Math.sin(Date.now() * 0.001) * 200;
+    this.mesh.position.x = Math.sin(Date.now() * 0.003) * 200;
 
-    this.camera.position.z += Math.sin(Date.now() * 0.002) * 9;
+    this.camera.position.z += Math.sin(Date.now() * 0.002) * 15;
+    this.camera.position.y += Math.sin(Date.now() * 0.004) * 15;
+
+
+    this.mesh2.rotation.y += 0.005;
+    this.mesh2.rotation.x += 0.02;
+    this.mesh2.rotation.z += 0.02;
+
+    this.mesh2.position.x = Math.cos(Date.now() * 0.002) * 280;
+
 
     // 動画テクスチャがある場合、更新する
     if (this.videoTexture) {
